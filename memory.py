@@ -11,10 +11,8 @@ while 1:
     used = int(line.split()[4])
     num = int(line.split()[8])
 
-    #print "Size:{} num:{} total_mem:{}"%(size)%(num)%(size*num)
+    #print "Size:%d num:%d total_mem:%d"%(size,num,size*num)
     print size,num,size*used,size*num
     total += size*num
     total_used += size*used
-    
-
 print total_used,total
