@@ -1,0 +1,6 @@
++[ 1]Size:    64 Current: 6015 Max:   9163 Total:  10038
+ [ 2]Size:   128 Current:  750 Max:   1201 Total:  65536
+ [ 3]Size:   256 Current: 3818 Max:   4608 Total:   8192
+ [ 4]Size:   512 Current: 2233 Max:   3502 Total:   8192
++[ 5]Size:  1024 Current:  851 Max:   1194 Total:   1290
++[ 6]Size:  2048 Current:  670 Max:    917 Total:    931
