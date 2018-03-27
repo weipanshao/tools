@@ -1,0 +1,527 @@
+sourceInsight 
+
+Ctrl+G 跳转到行；
+
+swp@0929PWS
+
+SecureCRT
+Ctrl+P 启动时切换到monitor模式下；
+ftp://192.168.1.74  测试部测试版本
+ftp://192.168.1.35  对外供货使用的正式版本
+
+
+SVN
+代码：https://192.168.1.72:8443/svn/SWITCH_NEW/shared/
+开发环境：https://192.168.1.72:8443/svn/DE-SWITCH/
+环境：https://192.168.1.72:8443/svn/SWITCH_NEW/environment/---->matrix.cs信息
+mib:https://192.168.1.72:8443/svn/mib
+ftp://192.168.1.100 bdcom bdcom 博达产品说明书
+常用连接
+经验总结 \\192.168.25.100\Upload\sunxi\经验总结
+部门规范 \\192.168.25.100\pub\Switch\部门文档
+版本服务器 ftp://192.168.1.74/switch_bin
+研发提交的说明书 \\192.168.1.35\博达产品说明书\临时版本\博达中文说明书\temp
+研发bug库 http://192.168.1.14/cqweb/logon/default.asp
+交换机SVN代码库 https://192.168.1.72:8443/svn/SWITCH_NEW
+工业以太网SVN代码库 https://192.168.1.72:8443/svn/IESWITCH
+交换机SVN开发环境 https://192.168.1.72:8443/svn/DE-SWITCH/
+交换机说明书SVN库 https://192.168.1.92:8443/svn/manual
+研发设备借用记录 http://192.168.44.3/bdcom/zhongshi/yfpro-borrow/yfborrow_list.asp
+行政资产借用记录 http://192.168.44.3/bdcom/xzzc-material/all_zcjlt_list.asp
+epon sdk-log-level 2 ==(debug ctcstack packet+attribute)
+eprom版本 //192.168.1.14/eprom, usr&pwd:eprom 
+序列号文档：ftp://guest:guest@192.168.44.3/研发公开文档库/产品文件/产品相关文件/产品序列号规则/
+
+objdumpppc -d vxWorks >a.txt
+objdumpmips -d vxworks >a.txt
+objdumpppc -dl --start-address=0x0002c4c8 --stop-address=0x0002c5dc vxworks>debug.s
+其中0x0002c4c8和0x0002c5dc是需要进行反汇编的起始和终止地址。
+HAL模块EPON_LC分支更新、imst TRUNK更新
+
+make rclean:
+第一次编译时会生成一个depend文件，该文件记录了所有依赖的头文件的路径，每次更改目录时都应用make rclean将depend文件删除，再重新编译时会生成一个新的depend文件。
+
+
+3314调试
+deubg zxy_hardware
+br vty
+找到current_dk地址（如0x80f1696c）按位或上0x08200000得到（0x88f1696c）即为密码。
+
+1101F 调试
+config下，开启epon sdk-log-level 5
+debug cortina
+找iros_log_mod_tab地址，为密码。
+退出诊断，即可调试。
+
+由于1010B版本由PON芯片发起CTC扩展协商，这部分报文使用epon sdk-log-level 2看不到。 
+需要config打开
+epon oampkt-to-cpu interface LLLD
+enable 模式下打开
+debug hal 0x00000040
+
+
+P3310 1010B config下，开启epon sdk-log-level 2
+查看OAM交互
+有关IP ACL
+FP_TCAM表中---->.PORT_FIELD_SEL_INDEX--定位到-->FP_PORT_FIELD_SEL寄存器，知道是芯片上哪个port。
+
+show ipv6 neighbors相当于IPv4 show arp.
+show l2 redirectors
+esw/fireblot/field.c----_field_fb_ingress_qualifiers_init();
+debug hal trace(0x1)配置跟踪接口的调用顺序。
+FP2用作UDF时，bit[0-31]为UDF[0] ... bit[96-127]为UDF[3]。
+VLAN间通讯，网关设置很重要。
+conf#vlan 1-4094  添加到VLAN_table
+conf#interface vlan xx 将CPU端口添加到vlan xx.
+qinq翻译时，翻译成的VLAN必须分配了物理端口。
+配置QinQ的端口，默认添加端口的PVID。符合翻译选项的添加new tag。
+show l2 interface ...
+debug cortina
+Switch#epon update onu image ...
+Switch#epon reboot ...
+Switch#show oir...
+Switch_config#through-pass slot 2
+3314 debug hal 0x00 ===no debug all
+注意matrix.csv中SDK和IMST的版本号
+BCM>debug [+/-][..|..|..]
+ssp\sdk-5.6.4\make\Make.config中，export DEBUG_VERSION    = TRUE 生成debug版本。
+BCM>debugmod <module> [+/- option]
+chram 改内存,vxWorks.map查看函数、变量地址，再具体改。
+cmdlist.c Shell下的命令。59 诊断模式下才能show memory
+hal_channel.c ---->  attach
+cmd下，set查看设置的环境变量；echo %xxx% 打印变量xxx。 
+boot flash 1.bin vflash
+虚拟Flash命令：
+{
+vflash size 16
+ip address 90.0.0.2 255.0.0.0
+copy tftp:switch3.bin flash:switch.bin 90.0.0.10
+boot flash switch.bin
+}
+解析异常时（show break），添加上pc指针的位置;map文件里ffffffff全去掉，也不带0x，解析的位置带0x。
+E:\dev\DE-SWITCH\3314_NEW\apps\3310C>objdumpmips -d vxworks > a.txt
+一般打印用Print();且Print()打印的优先级高于DEBUG_OUT();
+MIPS取地址，强制转换时有问题。先做memcpy();再做强制转换。对取地址的变量强制转换时，可先copy到变量上（此时定义的变量已是地址对齐），再做强制转换。
+
+几个命令：
+chram mem_addr value 使用chram 命令可以修改内存数据。
+
+
+
+关于bin文件的生成：
+common.def定义生成哪些模块；
+root.c为初始化入口，要添加相关模块的初始化；
+apps/lib中包含了其他模块的连接文件，故非自己模块更新时，要更新环境（即开发环境，包含了其他连接文件和头文件，自己模块的要自己更新头文件和模块文件）；而环境（https://192.168.1.72:8443/svn/SWITCH_NEW/environment/）中主要是matrix.cs文档，说明了模块使用的分支。
+
+
+新机型使用已有SSP：
+changed file:环境设置.bat 	sys/module/makefile	sdk/make/make.config make.local    configs/cfgdir.def    configs/%cpu%/defs.bdcom defs.bsp    
+bsps/和apps/ 文件夹下添加相应机型   apps/makefile common.def     apps/%switch_type%/makefiel root.c
+
+LLId SLA下行是对已知单播起作用。上行对所有报文起作用。
+打流时一般采用对打数据流；保证目的MAC学习到，能够转发到相应的出口。l2_table没学到目的MAC的话，就会广播到VLAN，而不会对SLA进行限制。
+流控（strom-control）是对广播、多播和未知单播起作用。
+block是阻止其通行（是出口方向起作用-storm_control）（port_security入口方向有起作用），bind是只让其通行（是入口方向上起作用strom_control）。
+protected端口隔离组之间以及隔离端口与未隔离端口能相互通信，同一隔离端口组内的端口不能相互通信。
+acl是顺序执行的并不是合并。
+ingress/egress   ingress是在端口入的方向，egress是在从此端口出的方向做限制。
+sqlite多数存储ONU相关配置，onu_show_db_config及onu_show_config在hal_onu.c下。interface_set_showrunning_service用于注册show running函数。
+interface_set_dbshowrunning_service用于注册 db的show running函数。
+
+eddp ether_type:0x88B7
+ebcmp(B-star & guangdian) ether_type:0x887 
+
+htons();
+atoi();
+执行MIB中write程序时入口都是先到read里，再转到write；
+BCM>show c(交换芯片计数器：GT为transmit计数器；GR为receive计数器)
+BCM>ps
+BCM>phy info
+hal_tiger_oltPhyPortGet获取PON芯片PHY端口。
+hal_85lc_attach PON口映射
+bcm5331x_slot_firmware_attach GE口映射
+hal_bcm_phy_patch 
+PC串口配置：波特率：9600 端口对应正确，流控去掉；
+USB串口配置：波特率：38400 对应好端口（o）(comX) 流控去掉；
+
+tiger内核：
+	cs_gphy_cfg_create之类，创建返回一个变量；
+	set gphy_cfg [cs_gphy_cfg_create] 给变量命名；
+	olt_port_ge_phy_get 0 1 $gphy_cfg 取得值到变量里；
+	cs_gphy_cfg_dump $gphy_cfg(或create的返回值) 再打印出来；
+
+
+PON芯片：
+	conf terminal
+	debug 
+	pon
+		{mpcp|fec|opm|pmac}
+		show summary
+
+ONU上行流，若ONU配置了tag（epon onu port 1 ctc valn mode tag xx）,带tag的数据包（包括tag xx）将不能上行；mode为trunk则可以通行。
+关于端口去tag，只去掉PVID值的tag和配置的trunk vlan-untagged XX.
+队列调度是对已知单播起作用。
+char == int8  (位扩展时要注意)
+队列调度在egress方向起作用。（hybrid2 与 switchPort rateLimit xx egress）
+
+E:\dev\DE-SWITCH\SWITCH_OLT_1010D_new\apps\3616>ram_convert.exe 0x10000000 vxwor
+ks.bin switch.bin
+3616 need change config.ini
+modify <table> <row> <n> <field>=<value>//(n is how many lines to change)
+setreg <reg> field=value
+modreg <reg> field=value
+查看8021内核：
+debug cortina
+Switch_config(D)#epon sdk-log-level(imst-log-level) 5
+cortina imst_show
+cortina imst_olt_port_set_psg 0 0x70000000 2 48 0 0 0 0 0  1 5 0
+
+Switch#show epon imst_show
+list of OLTs --->
+index  0 device_id 0x03001c07 mac 001325.1c0700 3
+index  1 device_id 0x03001807 mac 001325.180700 3
+index  2 device_id 0x01001bd7 mac 00e00f.e4d46e 1
+list of ONUs --->
+index   0 mac 00e00f.ca9b84 at olt 0x03001807 pon 0x10000000 llid 0x40000000 ctc
+_oam_ver 0x21
+Switch#
+85的使用：
+switch.bin为主控默认加载问价。线卡文件用下划线（如LS16PON_BIN）。
+
+8022 查看OAM注册报文信息：
+diagnosis 4100:DD2F:DA6B:AC22:9335:8C29:F4CE:DA44 
+debug ctcstack packet 
+debug ctcstack attribute
+
+8021 查看OAM注册报文信息：
+epon sdk-log-level 2
+
+monitor下查看版本信息：
+monitor#boot debug_cmd
+monitor#show version 
+BDCOM(tm) P3616-2TE Software
+Copyright by Shanghai Baud Data Communication CO. LTD.
+ROM: System Bootstrap, Version 0.4.4, Serial num:00315073100
+(RISC) processor with 262144K bytes of memory, 16384K bytes of flash
+Base ethernet MAC Address: 00:e0:0f:5e:fc:63
+snmp info:
+  product_ID:2011   system_ID:1.3.6.1.4.1.3320.1.2011.0
+system uptime is 0:00:00:35, The current time: 1970-1-1 0:0:35
+switch type:0x10e1, Freescale MPC8309,fingermark:0x10e10000
+eprom base:0xfe000000,flash_base:0x70000000
+attibute str:switch_name=P3616-2TE;welcome_name=EPON OLT;snmp_mcard=877;mcard_desc=P3616-2TE mother card;lm75_device=ON;port_map={2,0,1-4,0,16-19},{6,0,5-8,0,20-23},{8,0,1-2,0,24-25};lang=en;blackl=8014A8,A0C6EC,&ANYK
+monitor#
+
+
+8022:
+iros_tiger3_sc->fdbs 0x...   (查看l2地址表)
+iros_tiger3_sc->cs_show
+iros_tiger3_sc->
+iros_tiger3_sc->
+
+
+BCM.0>ps
+BCM.0>dump chg fp_tcam | policy_table
+BCM.0>dump chg l2_entry
+BCM.0>
+BCM.0>ps ge21
+BCM.0>show c xe1
+BCM.0>phy ge21
+BCM.0>phy int ge21
+BCM.0> l2 show
+
+
+内存泄露：
+show memory region detail
+扩展较多的Size疑为发生泄露的地方。具体看发生泄露时的扩展段分配情况，（show memory region xx）其中xx为[* EXTEND( 1/ xx)]。
+
+更新OLT eprom 
+monitor#copy tftp:guoneibuxian_00316000281.bin rom: 192.168.0.100 
+MAC 访问列表在出口方向上，只支持已知单播。
+对于定义的结构体，取内部元素用"."，对于指针指向的结构体，取内部元素用"->";
+对于内层VLAN的处理需要开启 dot1Q-tunnel；对于单tag的数据包，开启dot1Q-tunnel 后，原来的tag就变成内层tag了，加上了VLAN的tag。对于双tag的数据包，当作单tag来处理，忽视原内层的tag；因此，用了VLAN的translate table来保存原来的内层tag，在出去的时候进行恢复。
+
+pBitmap的使用：
+	pBitmap map1;
+	DEFINE_BITMAP(port, 64)
+	bitMapClear(port);
+	bitMapSetValue(port,n);
+	map1=port;
+	vty_output("bitmap(%s)\n",bitMapPrint(map1));
+
+mstsc -v 192.168.25.73
+
+
+
+demo板调试：
+user:root pwd:password
+linux上调试8022 demo板：
+运行相应程序和脚本；
+./tiger3_sc_tclsh_4.2.7.60 tiger3_tclsh.rc
+iros_tiger3_sc->cs_start
+iros_tiger3_sc->source init.cfg
+iros_tiger3_sc->cs_olt_download 0(olt_index) 
+
+
+8022串口DBA调试:
+OLT(config)# pon 0 
+OLT(config-pon[0])# dba 
+pon id - 0 
+OLT(config-pon[0]-dba)# debug alg-mode 1 
+
+
+
+BCM.1> port ge10 enable=true
+BCM.1> Jan  6 00:24:30 %LINE-5-UPDOWN: Line on Interface GigaEthernet7/1, changed state to up
+Jan  6 00:24:30 %LINEPROTO-5-UPDOWN: Line protocol on Interface GigaEthernet7/1, changed state to up
+
+BCM.1> ps
+C:\Documents and Settings\HP>netstat help
+
+显示协议统计信息和当前 TCP/IP 网络连接。
+
+流控和端口限速不能同时配置；流控需要造成拥塞才能触发。
+
+NETSTAT [-a] [-b] [-e] [-n] [-o] [-p proto] [-r] [-s] [-v] [interval]
+
+  -a            显示所有连接和监听端口。
+  -b            显示包含于创建每个连接或监听端口的
+                可执行组件。在某些情况下已知可执行组件
+                拥有多个独立组件，并且在这些情况下
+                包含于创建连接或监听端口的组件序列
+                被显示。这种情况下，可执行组件名
+                在底部的 [] 中，顶部是其调用的组件，
+                等等，直到 TCP/IP 部分。注意此选项
+                可能需要很长时间，如果没有足够权限
+                可能失败。
+  -e            显示以太网统计信息。此选项可以与 -s
+                选项组合使用。
+  -n            以数字形式显示地址和端口号。
+  -o            显示与每个连接相关的所属进程 ID。
+  -p proto      显示 proto 指定的协议的连接；proto 可以是
+                下列协议之一: TCP、UDP、TCPv6 或 UDPv6。
+                如果与 -s 选项一起使用以显示按协议统计信息，proto 可以是下列协议
+之一:
+                IP、IPv6、ICMP、ICMPv6、TCP、TCPv6、UDP 或 UDPv6。
+  -r            显示路由表。
+  -s            显示按协议统计信息。默认地，显示 IP、
+                IPv6、ICMP、ICMPv6、TCP、TCPv6、UDP 和 UDPv6 的统计信息；
+                -p 选项用于指定默认情况的子集。
+  -v            与 -b 选项一起使用时将显示包含于
+                为所有可执行组件创建连接或监听端口的
+                组件。
+  interval      重新显示选定统计信息，每次显示之间
+                暂停时间间隔(以秒计)。按 CTRL+C 停止重新
+                显示统计信息。如果省略，netstat 显示当前
+                配置信息(只显示一次)
+
+C:\Documents and Settings\HP>
+
+
+gcc -c hello.c
+ar -r lib.a file1.o file2.o ....
+gcc -o a lib.a
+
+
+cmd>
+tasklist | find /i "cmd"
+tasklist | findstr "cmd"
+
+E:\dev\DE-SWITCH\SWITCH_OLT_1010E_2016\apps\3616>copy /?
+Copies one or more files to another location.
+
+COPY [/D] [/V] [/N] [/Y | /-Y] [/Z] [/A | /B ] source [/A | /B]
+     [+ source [/A | /B] [+ ...]] [destination [/A | /B]]
+
+  source       Specifies the file or files to be copied.
+  /A           Indicates an ASCII text file.
+  /B           Indicates a binary file.
+  /D           Allow the destination file to be created decrypted
+  destination  Specifies the directory and/or filename for the new file(s).
+  /V           Verifies that new files are written correctly.
+  /N           Uses short filename, if available, when copying a file with a
+               non-8dot3 name.
+  /Y           Suppresses prompting to confirm you want to overwrite an
+               existing destination file.
+  /-Y          Causes prompting to confirm you want to overwrite an
+               existing destination file.
+  /Z           Copies networked files in restartable mode.
+
+The switch /Y may be preset in the COPYCMD environment variable.
+This may be overridden with /-Y on the command line.  Default is
+to prompt on overwrites unless COPY command is being executed from
+within a batch script.
+
+To append files, specify a single file for destination, but multiple files
+for source (using wildcards or file1+file2+file3 format).
+
+将两个BIN文件合并到一个：
+E:\dev\DE-SWITCH\SWITCH_OLT_1010E_2016\apps\3616>copy /B switch.bin /B + 1.bin /
+B switch_new.bin /B
+switch.bin
+1.bin
+        1 file(s) copied.
+
+E:\dev\DE-SWITCH\SWITCH_OLT_1010E_2016\apps\3616>dir
+ Volume in drive E has no label.
+ Volume Serial Number is C352-49C7
+
+ Directory of E:\dev\DE-SWITCH\SWITCH_OLT_1010E_2016\apps\3616
+
+2016-05-27  16:24    <DIR>          .
+2016-05-27  16:24    <DIR>          ..
+2016-05-27  16:24    <DIR>          lib
+2016-05-27  16:24               165 config.ini.bak
+2016-05-27  16:24               165 config.ini
+2016-05-27  16:24             8,721 root.c
+2016-05-27  16:24               271 default-config
+2016-05-27  16:24             1,272 makefile
+2016-05-27  16:28           424,348 ram_convert.exe
+2016-05-27  17:14           452,782 1.rar
+2016-05-27  17:09           524,296 1.bin
+2016-05-27  17:19             9,473 depend.root
+2016-05-27  17:19             7,132 root.o
+2016-05-27  17:19               752 revision.o
+2016-05-27  17:22        25,746,912 vxworks.bin
+2016-05-27  17:22        28,714,179 vxWorks
+2016-05-27  17:22         1,917,417 vxWorks.map
+2016-05-27  17:22        11,198,084 switch.bin
+2016-05-27  17:24        11,722,380 switch_new.bin
+              16 File(s)     80,728,349 bytes
+               3 Dir(s)   9,866,412,032 bytes free
+
+E:\dev\DE-SWITCH\SWITCH_OLT_1010E_2016\apps\3616>
+
+主备重启问题：
+Aug  9 10:36:08 %REDN-4-REBOOT_SELF Caution,system will reboot forcedly(741 0)
+这个错误是主备无法建立连接,可能是机箱问题，也可能是卡没插好。
+
+sqlite3 write database config error!(7) 可能是内存耗尽；
+此类报错可以到相应模块的头文件查看错误类型定义。
+
+洪江区广电那边针对PPPOE上网业务有个很奇怪的现象，采用同一条线路和同一台PC测试上下行速率，我们的OLT比华三和中兴的明显要低（12兆账号   我们上行4M左右，华三中兴 在6M左右；   24兆账号   我们上行6M左右，华三中兴的在9-11M左右）。-----8021芯片性能问题。
+1.可能是报文长度超过MTU，被丢弃，调整MTU。
+2.调整DBA cycletime，改变报文的延时。 
+
+限制厂商ONU功能：
+1.通过EPROM添加macprefix字段描述，OLT获取此字段，判断是否进行限制。
+
+BDCOM ONU macprefix=00e00f,fcfaf7   科大智能 macprefix=24ecd6
+
+类似的收集内存泄露问题的信息：
+show version
+show memory mblk
+show memory region
+show memory region detail
+show memory datab
+show memory msgb
+show memory region 0 | include alloc
+show memory region 1 | include alloc
+show memory region 2 | include alloc
+show memory region 3 | include alloc
+show memory region 4 | include alloc
+
+
+OAM分片 超过128字节要分片。每片128字节。(don't care)
+
+bitMapClone();会申请内存，对应的要使用bitMapDestroy()；来释放相应内存。
+
+scheduler policy hybrid2 配置时高优先级的两个队列weight置为0，表示优先满足这两个队列。
+
+monitor 下查看版本的一些隐藏信息：
+boot debug_cmd 
+
+OLT 小串口先波特率 38400
+8022 OAM调试：
+OLT#diagnose
+OLT(diagnose)#pkt enable oam 1 
+OLT(diagnose)#pkt clear 
+OLT(diagnose)#pkt llid <pon> <llid>
+OLT(diagnose)#pkt start
+OLT(diagnose)#pkt stop
+OLT(diagnose)#pkt dump 0 10
+
+36切换小串口连接PON芯片：
+诊断模式下：
+切换：reset_pon 1-4;
+查看：
+ cpld_status 查看状态和cpld地址；
+ 或show memory 0x60000018;
+
+epon reboot olt xx(module id) 
+(module id in show epon basic-info)
+每个PON芯片有一个MAC地址；
+maybe:
+module x (0:PON 1-4;1:PON 5-8;2:PON 9-12;3 PON 13-16;)
+
+reset_pon x (1:0x101, 2:0x202, 3:0x303, 4:0x404)
+
+ONU 上打开OAM debug：
+ONU#configure terminor
+ONU(config)#debug
+ONU(config-debug)#leag
+oam debug enable
+或者 p o（打开/关闭debug）
+
+
+
+协议分析仪：
+LAN1:192.168.1.100
+
+环路检测：
+PON口下需要打开inner-onu-swich；
+PON口间需要关闭隔离；
+
+P1702 ONU 长发光；
+# diag
+RTK.0>
+RTK.0>
+打开长发光：
+RTK.0> debug gpio set pin 35 databit 0
+set gpio 35 value 0!
+RTK.0> debug gpio set pin 35 state enable
+set gpio 35 to enable!
+RTK.0> debug gpio set pin 35 mode output
+set gpio 35 to output mode!
+RTK.0> epon set force-laser-on state enable
+RTK.0>
+RTK.0> debug gpio set pin 35 databit 0
+set gpio 35 value 0!
+RTK.0> debug gpio set pin 35 state enable
+set gpio 35 to enable!
+RTK.0> debug gpio set pin 35 mode output
+set gpio 35 to output mode!
+RTK.0>
+RTK.0>
+
+
+
+LOID的aaa认证配置
+aaa authentication login 123 local
+!
+username AAAABBBB password 0 65AAAABBBB （在本地配置上ONU的LOID和PASSWORD信息）65是PON口diID后面的是密码；
+username 8479737b5c12 password 0 641111
+username 84797331bf07 password 0 641111
+username 84797320564c password 0 651111
+!
+epon loid-authentication-method 123 （loid认证使用123访问列表来进行认证）
+
+8021 OAM 调试：
+debug hal oampdu-to-cpu interface ex/x:x
+epon sdk-log-level x ()
+
+SYS_PC_SAVE
+SYS_PC_GET
+SYS_PC_RESTORE
+
+
+36 e1-4 0x404 5-8 0x303 9-12 0x202 13-16 0x101
+
+5952
+8021卡、早期研发内部及测试版部分使用的8022卡
+slot 5->0x1007 ....slot 10 0x1507
+slot 11->0x1807 ...slot 16 0x1d07
+
+8022正式供货卡
+slot 5->0x0007 ....slot 10 0x0507
+slot 11->0x0807 ...slot 16 0x0d07
