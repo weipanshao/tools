@@ -1,6 +1,6 @@
-+[ 1]Size:    64 Current: 6015 Max:   9163 Total:  10038
- [ 2]Size:   128 Current:  750 Max:   1201 Total:  65536
- [ 3]Size:   256 Current: 3818 Max:   4608 Total:   8192
- [ 4]Size:   512 Current: 2233 Max:   3502 Total:   8192
-+[ 5]Size:  1024 Current:  851 Max:   1194 Total:   1290
-+[ 6]Size:  2048 Current:  670 Max:    917 Total:    931
+ [ 0]Size:    16 Current:19138 Max:  21814 Total:  65536
+ [ 1]Size:    32 Current:48669 Max:  51245 Total:  65536
+ [ 2]Size:    64 Current:49109 Max:  50626 Total:  65536
+ [ 3]Size:   128 Current: 7145 Max:   7147 Total:  65536
+ [ 4]Size:   256 Current:19585 Max:  19701 Total:  65536
+ [ 5]Size:   512 Current:15974 Max:  16023 Total:  65536
